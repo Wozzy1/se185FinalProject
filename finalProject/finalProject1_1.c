@@ -6,27 +6,43 @@
 #include<stdbool.h>
 #define BUF_SIZE 256
 
+/**
+ * A program to generate a random playlist that allows users to find more info about each song.
+ *
+ * @Authors Danton Dang, Wilson Diep, Evan Doan, Nathan Ervin
+ */
 
+
+// function to count line
 int countLines(FILE* file);
+
+// removes new lines and white spaces
 void trimws(char* str);
+
+// checks if a song is in the final playlist already
 int existsAlready(int nums[], int target, int max);
+
+// define a struct for song with 3 members
+typedef struct songStruct {
+	char title[50];
+	char artist[50];
+	char length[50];
+} Song;
 
 int main()
 {
-	//char* filename = "songsInfo.txt";
+	// opens source file with pointer
 	FILE* file = fopen("songsInfo.txt", "r");
 	
-	// size_t bytesRead = fread(buffer, 1, sizeof(buffer), file);
-
+	// computes the number of songs from the number of lines in the source file
 	int numLines = countLines(file);
 	int numSongs = (numLines % 3 > 0) ? (numLines / 3 + 1) : (numLines /3);
 	
+	// init 3 arr of char to hold information from the file
 	char titles[numSongs][50];
 	char artists[numSongs][50];
-	//int length[numSongs];
 	char length[numSongs][50];
 	
-	// [title1, title2, title3]
 	
 	fseek(file, 0, SEEK_SET);
 	
@@ -35,7 +51,7 @@ int main()
 	int pos = 0;
 	char line[50];
 
-	// Read the content and print it
+	// read, clean, and store the info from the file
 	while(fgets(line, 50, file)) {
 		
 		if (status == 1)
@@ -64,33 +80,30 @@ int main()
 	
 	printf("There are %d total songs.", numSongs);
 	
+	// prompts user for the number of songs in the new playlist
 	int playlistLength;
-	//do 
 	printf("\nHow many songs to put in the new list (Enter a value less than total songs): ");
 	scanf("%d", &playlistLength);
-	 
-	//while(playlistLength > numSongs && playlistLength > 0);
-	
-	//printf("\nNow enter a name (you get one shot don't mess up): ");
 
-	//char playlistName[50];
-	/*
-	scanf("%s", playlistName);
-	
-	strcat(playlistName, ".txt");
-	printf("%s", playlistName);
-	*/
-	srand(1);
+	srand(time(NULL));
 
+	// opens a new file pointer to write to the new text file output
 	FILE* newF = fopen("newsongs.txt", "w+");
 	
+	// a loop to populate the arr of used indexes with place holder values
 	int usedIndex[playlistLength];
 	for (int i = 0; i < playlistLength; i+=1)
 	{
 		usedIndex[i] = -1;
 	}
 	
+	// init an arr of song objects that have name, artist, and length
+	// creates a Song object with dynamic memory allocation
+	Song* usedSongs = (Song*)malloc(playlistLength * sizeof(Song));
+	
 	int index = 0;
+	
+	// populates Song arr object with Song objects from file data
 	while (index < playlistLength)
 	{
 		int songNum = rand() % numSongs;
@@ -99,8 +112,49 @@ int main()
 		{
 			fprintf(newF, strcat(titles[songNum],"\n"));
 			usedIndex[index] = songNum;
+			strcpy(usedSongs[index].title, titles[songNum]);
+			strcpy(usedSongs[index].artist, artists[songNum]);
+			strcpy(usedSongs[index].length, length[songNum]);
+			
 			index +=1;
 		}
+	}
+	
+	// while program is not over, prompt user if they want to end, then ask for a song title, then print out info about that song
+	while (1)
+	{
+		char answer = ' ';
+		printf("\nNow that the playlist is done, do you want to look at any of these songs? (Y/N)\n");
+		scanf(" %c", &answer);
+		
+		if (answer == 'N')
+		{
+			printf("Okay program ending... bye.\n");
+			break;
+		}
+		
+		char input[50] = "";
+		
+		for (int i = 0; i < playlistLength; i +=1)
+		{
+			printf("%s", usedSongs[i].title);
+		}
+		
+		printf("\nEnter the name of the song you'd like to look at: \n");
+		scanf(" %[^\n]", input);
+		strcat(input, "\n");
+		
+		for (int i = 0; i < playlistLength; i +=1)
+		{
+			if (strcmp(input, usedSongs[i].title) == 0) 
+			{
+				printf("Title: %sArist: %s\nLength (sec): %s\n", usedSongs[i].title, usedSongs[i].artist, usedSongs[i].length);
+				break;
+			}
+
+		}
+		
+		
 	}
 	
 	
@@ -157,7 +211,6 @@ int existsAlready(int nums[], int target, int max)
 	return 0;
 }
 
-
 /*
 Given a text file of song titles, the program would select a number (decided by user input) of random songs and generate a playlist of them. 
 
@@ -200,5 +253,7 @@ user can select to search song info
 
 quit program
 
+USE THIS FOR THE DYNAMIC MEMORY
+int *evenNums = malloc(8 * sizeof(int)); // or int evenNums[8];
 
 */
